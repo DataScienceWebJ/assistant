@@ -1,0 +1,280 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Платформа по недвижимости</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: #fff;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            color: #0052cc;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            padding: 40px 0;
+        }
+
+        .info-section {
+            flex: 2;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-section h2 {
+            color: #0052cc;
+            margin-bottom: 20px;
+        }
+
+        .info-section ul {
+            list-style: none;
+        }
+
+        .info-section li {
+            padding: 10px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-window {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .chat-message.user {
+            background-color: #0052cc;
+            color: #fff;
+            margin-left: 20%;
+            margin-right: 10px;
+        }
+
+        .chat-message.bot {
+            background-color: #e6f0ff;
+            margin-right: 20%;
+            margin-left: 10px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            background-color: #0052cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .chat-input button:hover {
+            background-color: #003d99;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .info-section,
+            .chat-section {
+                flex: none;
+                width: 100%;
+            }
+
+            .chat-message.user,
+            .chat-message.bot {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Платформа по недвижимости</h1>
+            <p>Ваш надёжный помощник в поиске жилья и оформлении сделок</p>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <section class="info-section">
+            <h2>Возможности платформы</h2>
+            <ul>
+                <li>Подбор жилья по вашим предпочтениям</li>
+                <li>Помощь в оформлении ипотеки</li>
+                <li>Анализ районов и инфраструктуры</li>
+                <li>Поддержка в подготовке документов</li>
+            </ul>
+        </section>
+
+        <aside class="chat-section">
+            <h2>AI-Ассистент</h2>
+            <div class="chat-window" id="chatWindow">
+                <div class="chat-message bot">Здравствуйте! Чем могу помочь?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Введите ваш вопрос...">
+                <button onclick="sendMessage()">Отправить</button>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const chatWindow = document.getElementById('chatWindow');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user';
+            userMessage.textContent = message;
+            chatWindow.appendChild(userMessage);
+
+            // Generate bot response
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chat-message bot';
+            botMessage.textContent = generateBotResponse(message);
+            chatWindow.appendChild(botMessage);
+
+            // Clear input
+            input.value = '';
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function generateBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('ипотека')) {
+                return 'Введите сумму, срок и процентную ставку';
+            } else if (lowerMessage.includes('жилье') || lowerMessage.includes('квартира')) {
+                return 'Уточните город, бюджет и желаемые параметры жилья';
+            } else if (lowerMessage.includes('район')) {
+                return 'Назови город и район, я расскажу о инфраструктуре';
+            } else if (lowerMessage.includes('документы')) {
+                return 'Какие документы нужно подготовить?';
+            } else {
+                return 'Пожалуйста, уточните ваш запрос';
+            }
+        }
+
+        // Allow sending message with Enter key
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
